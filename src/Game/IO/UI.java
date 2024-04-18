@@ -29,6 +29,13 @@ public class UI {
                 playAgainFlag = true;
             }
         });
+        enterYourNameHereTextField.addKeyListener(new java.awt.event.KeyAdapter() {
+           public void keyPressed(java.awt.event.KeyEvent evt) {
+               if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
+                   saveScoreButton.doClick();
+               }
+           }
+        });
         DefaultTableModel model = new DefaultTableModel();
         model.addColumn("Name");
         model.addColumn("Score");

@@ -3,6 +3,7 @@ package Game;
 import Game.GameMechanics.*;
 import Game.IO.Canvas;
 import Game.IO.Window;
+import Game.IO.Database;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -63,49 +64,7 @@ public class Tetris implements Runnable {
     private void died() {
         window.showDead();
 
-
-        String url = "jdbc:mysql://localhost:3306/tetris";
-        String username = "root";
-        String password = "mysql_splash";
-
-        try {
-            // Establishing a connection to the database
-            Connection connection = DriverManager.getConnection(url, username, password);
-
-            // Creating a statement
-            Statement statement = connection.createStatement();
-
-            // Executing the query to retrieve scores from the table
-            String query = "SELECT name, score FROM scores";
-            ResultSet resultSet = statement.executeQuery(query);
-
-            // Creating arrays to store names and scores
-            ArrayList<String> namesList = new ArrayList<>();
-            ArrayList<Integer> scoresList = new ArrayList<>();
-
-            // Retrieving data from the result set
-            while (resultSet.next()) {
-                String name = resultSet.getString("name");
-                int score = resultSet.getInt("score");
-                namesList.add(name);
-                scoresList.add(score);
-            }
-
-            // Converting lists to arrays
-            String[] names = namesList.toArray(new String[0]);
-            int[] scores = scoresList.stream().mapToInt(Integer::intValue).toArray();
-
-            // Setting the scores table in the window
-            window.setScoresTable(names, scores);
-
-            // Closing the result set, statement, and connection
-            resultSet.close();
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
+        updateScoresTable();
 
         while (dead) {
             if (window.canPlayAgain()) {
@@ -126,37 +85,13 @@ public class Tetris implements Runnable {
         canvas = new Canvas(playField, width, height, upperLimit);
         window = new Window(width, height, upperLimit, canvas);
 
-
         window.setOnSubmitNameAction((onSubmitAction) -> {
             String name = window.getEnteredName();
             System.out.println(name + " " + score);
 
-            String url = "jdbc:mysql://localhost:3306/tetris";
-            String username = "root";
-            String password = "mysql_splash";
+            Database.addScore(name,score);
 
-            try {
-                // Establishing a connection to the database
-                Connection connection = DriverManager.getConnection(url, username, password);
-
-                // Creating a prepared statement
-                String query = "INSERT INTO scores (name, score) VALUES (?, ?)";
-                PreparedStatement statement = connection.prepareStatement(query);
-
-                // Setting the values for the prepared statement
-                statement.setString(1, name);
-                statement.setInt(2, score);
-
-                // Executing the query
-                statement.executeUpdate();
-
-                // Closing the statement and connection
-                statement.close();
-                connection.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
+            updateScoresTable();
 
         });
 
@@ -173,7 +108,7 @@ public class Tetris implements Runnable {
             public void keyPressed(KeyEvent e) {
                 int keyCode = e.getKeyCode();
 
-                if (keyCode == KeyEvent.VK_SPACE) {//Rotation
+                if (keyCode == KeyEvent.VK_SPACE) {// Rotation
                     position[] rotated_positions = current_piece.getRotatedVersion(1);
                     if (isMovable(rotated_positions)) {
                         clearPositions();
@@ -183,11 +118,11 @@ public class Tetris implements Runnable {
                     }
                 }
 
-                if (keyCode == KeyEvent.VK_RIGHT)//Horizontal Movement
+                if (keyCode == KeyEvent.VK_RIGHT)// Horizontal Movement
                     horizontal_movement = 1;
                 if (keyCode == KeyEvent.VK_LEFT)
                     horizontal_movement = -1;
-                if (keyCode == KeyEvent.VK_DOWN)//Move Down
+                if (keyCode == KeyEvent.VK_DOWN)// Move Down
                     vertical_movement = 1;
 
                 if (horizontal_movement != 0 || vertical_movement != 0) {
@@ -208,9 +143,12 @@ public class Tetris implements Runnable {
     private void update() {
 
         if (isMovable(0, 1)) {
-            move(0, 1);/*Moving piece downwards*/
+            move(0, 1);/* Moving piece downwards */
         } else {
-            /*if the piece is unable to move,then, a background piece is created in its place*/
+            /*
+             * if the piece is unable to move,then, a background piece is created in its
+             * place
+             */
             for (position blockPosition : current_piece.blockPositions) {
                 position pos = position.add(current_piece.pos, blockPosition);
 
@@ -232,10 +170,13 @@ public class Tetris implements Runnable {
     }
 
     private void move(int incX, int incY) {
-        /*If piece is able to move, we cleanup its previous position on the field , and place the piece in the new position*/
-        clearPositions();                                              /*Clearing the previous position of the object*/
+        /*
+         * If piece is able to move, we cleanup its previous position on the field , and
+         * place the piece in the new position
+         */
+        clearPositions(); /* Clearing the previous position of the object */
 
-        current_piece.pos.y += incY;                                         /*incrementing the position of the object*/
+        current_piece.pos.y += incY; /* incrementing the position of the object */
         current_piece.pos.x += incX;
 
         placePiece();
@@ -278,7 +219,7 @@ public class Tetris implements Runnable {
     }
 
     private void placePiece() {
-        for (int i = 0; i < current_piece.blockPositions.length; i++) {                  /*placing the object in the playField*/
+        for (int i = 0; i < current_piece.blockPositions.length; i++) { /* placing the object in the playField */
             position pos = position.add(current_piece.pos, current_piece.blockPositions[i]);
             playField[pos.x][pos.y].type = BlockType.MOVABLE;
             playField[pos.x][pos.y].setRGB(current_piece);
@@ -308,18 +249,17 @@ public class Tetris implements Runnable {
 
             destroyedAnimation(rowNumbers);
 
-            //Removing the needed blocks
+            // Removing the needed blocks
             for (int y : rowNumbers)
                 for (int x = 0; x < width; x++)
                     playField[x][y].type = BlockType.EMPTY;
 
             renderScreen();
 
-            //moving the blocks down after the needed blocks are destroyed
+            // moving the blocks down after the needed blocks are destroyed
             moveDown(rowNumbers.get(0), numberOfRows);
         }
     }
-
 
     void moveDown(int rowEnd, int numberOfRows) {
         for (int i = 0; i < numberOfRows; i++, delay(200L)) {
@@ -345,6 +285,15 @@ public class Tetris implements Runnable {
                     rowEnd--;
             }
         }
+    }
+
+    public void updateScoresTable() {
+        
+            Object[] nameAndScores = Database.getNameAndScores();
+            String[] names = (String[]) nameAndScores[0];
+            int[] scores = (int[]) nameAndScores[1];
+
+            window.setScoresTable(names, scores);
     }
 
     long goal = 0L;
