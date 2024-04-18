@@ -1,9 +1,12 @@
 package Game.IO;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.table.TableColumn; // Add missing import statement
 
 public class UI {
     public JPanel panel;
@@ -12,6 +15,8 @@ public class UI {
     public JButton playAgain;
     private JTextField enterYourNameHereTextField;
     private JButton saveScoreButton;
+    public JPanel endScreen;
+    public JTable scoresTable;
     boolean playAgainFlag = false;
 
     public UI(Canvas canvas, Dimension canvas_dimension) {
@@ -24,6 +29,14 @@ public class UI {
                 playAgainFlag = true;
             }
         });
+        DefaultTableModel model = new DefaultTableModel();
+        model.addColumn("Name");
+        model.addColumn("Score");
+        scoresTable.setModel(model);
+        
+        scoresTable.getTableHeader().setVisible(true);
+        
+
     }
 
     public String getEnteredName(){
