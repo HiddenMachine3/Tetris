@@ -1,6 +1,6 @@
 CREATE DATABASE IF NOT EXISTS tetris CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-\connect tetris;
+USE tetris;  -- Replace  \connect tetris;
 
 CREATE TABLE `scores` (
   `name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
