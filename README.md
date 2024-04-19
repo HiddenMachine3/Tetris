@@ -11,4 +11,4 @@ run the following command to run the sql script(which creates the database and i
 
 
 To run, all you have to do is have jdk (21 preferably) installed and put on your path
-`java.exe -classpath "out\production\Tetris;mysql-connector-j-8.3.0.jar" Main.Main`
+`java.exe -classpath "out\prrelu diffoduction\Tetris;mysql-connector-j-8.3.0.jar" Main.Main`

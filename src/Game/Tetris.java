@@ -138,6 +138,7 @@ public class Tetris implements Runnable {
         window.addKeyListener(movement);
         window.updateScore(score);
         window.setVisible(true);
+        window.requestFocus();
     }
 
     private void update() {
